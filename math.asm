@@ -55,6 +55,7 @@ sub32le: ; (ix) = (ix) - (iy)
     pop ix
     ret
 
+; TODO speed up these with in-memory rotate instructions?
 sra32le: ; (ix) = (ix)>>1, clobbers a and leaves the carry flag with the previous lsb
     ld a,(ix+3)
     sra a
@@ -70,12 +71,49 @@ sra32le: ; (ix) = (ix)>>1, clobbers a and leaves the carry flag with the previou
     ld (ix+0),a
     ret
 
-dbl32le: ; (ix) = (ix) + (ix)
-    push iy
-    push ix
-    pop iy
-    call add32le
-    pop iy
+sra32le_iy: ; (iy) = (iy)>>1, clobbers a and leaves the carry flag with the previous lsb
+    ld a,(iy+3)
+    sra a
+    ld (iy+3),a
+    ld a,(iy+2)
+    rr a
+    ld (iy+2),a
+    ld a,(iy+1)
+    rr a
+    ld (iy+1),a
+    ld a,(iy+0)
+    rr a
+    ld (iy+0),a
+    ret
+
+dbl32le: ; (ix) = (ix) << 1, clobbers a and cary flag
+    ld a, (ix)
+    sla a
+    ld (ix), a
+    ld a, (ix+1)
+    rl a
+    ld (ix+1), a
+    ld a, (ix+2)
+    rl a
+    ld (ix+2), a
+    ld a, (ix+3)
+    rl a
+    ld (ix+3), a
+    ret
+
+dbl32le_iy: ; (iy) = (iy) << 1, clobbers a and cary flag
+    ld a, (iy)
+    sla a
+    ld (iy), a
+    ld a, (iy+1)
+    rl a
+    ld (iy+1), a
+    ld a, (iy+2)
+    rl a
+    ld (iy+2), a
+    ld a, (iy+3)
+    rl a
+    ld (iy+3), a
     ret
 
 mul32le: ; (ix) = (ix) * (iy)
@@ -103,18 +141,14 @@ mul32le: ; (ix) = (ix) * (iy)
     ld (ix+3), 0
     ; 32 step multiply loop
     ld b, 32
-    ld iy, mul32le_tmp2
+    ;ld iy, mul32le_tmp2
+    ld de, 4
 mul32le_loop:
-    push ix
-    ld ix, mul32le_tmp1
-    call sra32le
-    pop ix
+    ld iy, mul32le_tmp1 ; 20
+    call sra32le_iy 
+    ld iy, mul32le_tmp2 ; 20
     call c, add32le
-    push ix
-    push iy
-    pop ix
-    call dbl32le
-    pop ix
+    call dbl32le_iy
     djnz mul32le_loop
     pop iy
     pop hl
