@@ -31,7 +31,7 @@ build/day%/input.txt.tap: inputs/day%.txt bin2tap/bin2tap
 build/day%/full.tap: build/day%/preload.tap build/day%/main.bin.tap build/day%/input.txt.tap
 	cat $^ > $@
 
-all: build/day1/full.tap
+all: build/day1/full.tap build/day2/full.tap
 
 
 clean:

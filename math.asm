@@ -292,11 +292,14 @@ str32le_last:
     ld (hl), a
     pop hl
     ld a, 48
+    ld b, 9
 str32le_space_pad_loop:
     cp (hl)
     jp nz, str32le_done
     ld (hl), 32
     inc hl
+    dec b
+    jp z, str32le_done
     jp str32le_space_pad_loop
 str32le_done:
     pop iy
