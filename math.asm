@@ -84,22 +84,21 @@ dbl32le_iy: ; (iy) = (iy) << 1
     ret
 
 mul32le: ; (ix) = (ix) * (iy)
-    push af
     push bc
     push de
     push hl
     push iy
-    ; Copy (ix) to (tmp1)
+    ; Copy (ix) to (tmp2)
     ld bc, 4
     push ix
     pop hl
-    ld de, mul32le_tmp1
+    ld de, mul32le_tmp2
     ldir
-    ; Copy (iy) to (tmp2)
+    ; Copy (iy) to (tmp1)
     ld bc, 4
     push iy
     pop hl
-    ld de, mul32le_tmp2
+    ld de, mul32le_tmp1
     ldir
     ; set (ix) to 0
     ld (ix+0), 0
@@ -121,11 +120,43 @@ mul32le_loop:
     pop hl
     pop de
     pop bc
-    pop af
     ret
 mul32le_tmp1:
     db 0,0,0,0
 mul32le_tmp2:
+    db 0,0,0,0
+
+; Optimised multiply by 10
+; (ix) = (ix) * 10
+; decomposes 10 into sum of powers of two
+; x * 10 === (x * 2) + (x * 8) === dbl(x) + dbl(dbl(dbl(x)))
+; three doubles plus an add
+multen32le:
+    push bc
+    push de
+    push hl
+    push iy
+    ; (ix) = (ix) * 2
+    call dbl32le
+    ; (tmp1) = (ix)
+    ld bc, 4
+    push ix
+    pop hl
+    ld de, multen32le_tmp1
+    ldir
+    ; (ix) = (ix) * 2
+    call dbl32le
+    ; (ix) = (ix) * 2
+    call dbl32le
+    ; (ix) = (ix) + (tmp1)
+    ld iy, multen32le_tmp1
+    call add32le
+    pop iy
+    pop hl
+    pop de
+    pop bc
+    ret
+multen32le_tmp1:
     db 0,0,0,0
 
 hexit: ; Converts a from a number in the range 0-15 to an ascii value 0-9A-F
@@ -247,8 +278,6 @@ dec_ten:
 dec_last:
     db 0x01, 0x00, 0x00, 0x00
 
-; x.xxx.xxx.xxx
-
 str32le: ; converts (ix) to a string, iy points to the buffer where the string will be placed
     ; Copy (ix) to (tmp1)
     push af
@@ -320,6 +349,7 @@ parse32le: ; takes a buffer (hl) and consumes digits until a non-digit is reache
     ld (ix+1), 0
     ld (ix+2), 0
     ld (ix+3), 0
+    ld iy, parse32le_tmp1
 parse32le_loop:
     ; get next char
     ld a, (hl)
@@ -329,11 +359,9 @@ parse32le_loop:
     cp 10
     jp nc, parse32le_done ; if greater than 10 then we're done
     ; multiply (ix) by 10
-    ld iy, dec_ten
-    call mul32le
+    call multen32le
     ; add the next digit
     ld (parse32le_tmp1), a
-    ld iy, parse32le_tmp1
     call add32le
     ; loop
     inc hl
