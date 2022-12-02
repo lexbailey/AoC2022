@@ -25,7 +25,7 @@ build/day%/main.bin.tap: build/day%/main.bin bin2tap/bin2tap
 
 build/day%/input.txt.tap: inputs/day%.txt bin2tap/bin2tap
 	cat $< <(echo -ne '\x00') > $(<).0
-	bin2tap/bin2tap 0xa000 AoC22d`printf '%s' $@ | sed -E 's#.*day([0-9]+).*#\1#'`i
+	bin2tap/bin2tap 0xa000 AoC22d`printf '%s' $@ | sed -E 's#.*day([0-9]+).*#\1#'`i $(<).0
 	mv $(<).0.tap $@ 
 
 build/day%/full.tap: build/day%/preload.tap build/day%/main.bin.tap build/day%/input.txt.tap
