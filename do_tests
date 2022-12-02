@@ -1,0 +1,28 @@
+#!/usr/bin/env xonsh
+$RAISE_SUBPROC_ERROR = True
+
+import os
+import argparse
+
+p = argparse.ArgumentParser()
+p.add_argument("day")
+
+args = p.parse_args()
+
+$day = args.day
+
+$test_dir = f'tests/day{$day}'
+test_list = os.listdir($test_dir)
+
+for $f in test_list:
+    if $f.endswith('.0'):
+        continue
+    $path = os.path.join($test_dir, $f)
+    $bd = f"build/day{$day}"
+    make "$bd/preload.tap" "$bd/main.bin.tap"
+    cp $path $path.0
+    printf '\x00' >> $path.0
+    ./bin2tap/bin2tap 0xa000 "AoC22d${'day'}i" $path.0
+    mv $path.0.tap $bd/test_input_$f.tap
+    rm $path.0
+    cat  "$bd/preload.tap" "$bd/main.bin.tap" "$bd/test_input_$f.tap" > "$bd/test_${'f'}_full.tap"

@@ -1,0 +1,6 @@
+[submodule "bin2tap"]
+	path = bin2tap
+	url = https://github.com/lexbailey/bin2tap.git
+[submodule "bas2tap"]
+	path = bas2tap
+	url = https://github.com/lexbailey/bas2tap.git
