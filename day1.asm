@@ -18,6 +18,10 @@ start:
 done:
     ; TODO printing of result goes here
     ld ix, number1
+    ld hl, strvar
+    call parse32le
+    ld iy, number2
+    call add32le
     ld iy, strvar
     call str32le
     ld iy,(iy_cache)
@@ -28,13 +32,11 @@ end:
     jp end
 
 number1:
-    ;db 0x55, 0x00, 0x00, 0x00
-    db 0x5d, 0xcb, 0x74, 0x00
-;number2:
-;    db 0x05, 0x05, 0x00, 0x01
+    db 0,0,0,0
+number2:
+    db 2,0,0,0
 strvar:
-    db "testtest.."
-    db 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    db "1234      "
 
 text:
     db AT, 0, 0, INK, 8 

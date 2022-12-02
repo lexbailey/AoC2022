@@ -79,11 +79,12 @@ dbl32le: ; (ix) = (ix) + (ix)
     ret
 
 mul32le: ; (ix) = (ix) * (iy)
-    ; Copy (ix) to (tmp1)
+    push af
     push bc
     push de
     push hl
     push iy
+    ; Copy (ix) to (tmp1)
     ld bc, 4
     push ix
     pop hl
@@ -119,6 +120,7 @@ mul32le_loop:
     pop hl
     pop de
     pop bc
+    pop af
     ret
 mul32le_tmp1:
     db 0,0,0,0
@@ -239,6 +241,7 @@ dec_consts:
     db 0x10, 0x27, 0x00, 0x00
     db 0xe8, 0x03, 0x00, 0x00
     db 0x64, 0x00, 0x00, 0x00
+dec_ten:
     db 0x0a, 0x00, 0x00, 0x00
 dec_last:
     db 0x01, 0x00, 0x00, 0x00
@@ -302,4 +305,37 @@ str32le_done:
     pop af
     ret
 str32le_tmp1:
+    db 0,0,0,0
+
+
+parse32le: ; takes a buffer (hl) and consumes digits until a non-digit is reached, leaves hl at the end of the parsed number, stores number at (ix)
+    ; this function works by multiplying by 10 and adding the next char as unit value until it finds an unrecognised char
+    push af
+    ; (ix) = 0
+    ld (ix), 0
+    ld (ix+1), 0
+    ld (ix+2), 0
+    ld (ix+3), 0
+parse32le_loop:
+    ; get next char
+    ld a, (hl)
+    ; ascii zero to number 0
+    sub 48
+    ; is number less than 10?
+    cp 10
+    jp nc, parse32le_done ; if greater than 10 then we're done
+    ; multiply (ix) by 10
+    ld iy, dec_ten
+    call mul32le
+    ; add the next digit
+    ld (parse32le_tmp1), a
+    ld iy, parse32le_tmp1
+    call add32le
+    ; loop
+    inc hl
+    jp parse32le_loop
+parse32le_done:
+    pop af
+    ret
+parse32le_tmp1:
     db 0,0,0,0
