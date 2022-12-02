@@ -55,65 +55,32 @@ sub32le: ; (ix) = (ix) - (iy)
     pop ix
     ret
 
-; TODO speed up these with in-memory rotate instructions?
-sra32le: ; (ix) = (ix)>>1, clobbers a and leaves the carry flag with the previous lsb
-    ld a,(ix+3)
-    sra a
-    ld (ix+3),a
-    ld a,(ix+2)
-    rr a
-    ld (ix+2),a
-    ld a,(ix+1)
-    rr a
-    ld (ix+1),a
-    ld a,(ix+0)
-    rr a
-    ld (ix+0),a
+sra32le: ; (ix) = (ix)>>1
+    sra (ix+3)
+    rr (ix+2)
+    rr (ix+1)
+    rr (ix)
     ret
 
-sra32le_iy: ; (iy) = (iy)>>1, clobbers a and leaves the carry flag with the previous lsb
-    ld a,(iy+3)
-    sra a
-    ld (iy+3),a
-    ld a,(iy+2)
-    rr a
-    ld (iy+2),a
-    ld a,(iy+1)
-    rr a
-    ld (iy+1),a
-    ld a,(iy+0)
-    rr a
-    ld (iy+0),a
+sra32le_iy: ; (iy) = (iy)>>1
+    sra (iy+3)
+    rr (iy+2)
+    rr (iy+1)
+    rr (iy)
     ret
 
-dbl32le: ; (ix) = (ix) << 1, clobbers a and cary flag
-    ld a, (ix)
-    sla a
-    ld (ix), a
-    ld a, (ix+1)
-    rl a
-    ld (ix+1), a
-    ld a, (ix+2)
-    rl a
-    ld (ix+2), a
-    ld a, (ix+3)
-    rl a
-    ld (ix+3), a
+dbl32le: ; (ix) = (ix) << 1
+    sla (ix)
+    rl (ix+1)
+    rl (ix+2)
+    rl (ix+3)
     ret
 
-dbl32le_iy: ; (iy) = (iy) << 1, clobbers a and cary flag
-    ld a, (iy)
-    sla a
-    ld (iy), a
-    ld a, (iy+1)
-    rl a
-    ld (iy+1), a
-    ld a, (iy+2)
-    rl a
-    ld (iy+2), a
-    ld a, (iy+3)
-    rl a
-    ld (iy+3), a
+dbl32le_iy: ; (iy) = (iy) << 1
+    sla (iy)
+    rl (iy+1)
+    rl (iy+2)
+    rl (iy+3)
     ret
 
 mul32le: ; (ix) = (ix) * (iy)
