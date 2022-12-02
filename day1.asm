@@ -13,65 +13,18 @@ day:
 
 iy_cache:
     db 0, 0
-start:
-p1:
-    ld (iy_cache),iy
-    call ROM_CLS
-    ld hl, day
-    call intro_p1
-compute:
-    ld hl, 0xa000 ; location of input text
-elfloop:
-    ld a, (hl)
-    cp 10
-    jp z, nextelf
-    ld ix, next
-    call parse32le
-    ld ix, this
-    ld iy, next
-    call add32le
-    inc hl
-    jp elfloop
-nextelf:
-    ; see if this number is bigger than the previous one
-    ld iy, max
-    call gt32le
-    cp 1
-    jp nz, notbigger
-    ld bc, 4
-    ld de, max
-    push hl
-    ld hl, this
-    ldir
-    pop hl
-notbigger:
-    inc hl
-    ld a, (hl)
-    cp 0
-    jp z, output
-    ld a, 0
-    ld (this), a
-    ld (this+1), a
-    ld (this+2), a
-    ld (this+3), a
-    jp elfloop
-output:
-    ld ix, max
-    ld iy,(iy_cache)
-    call p1_result
-endp1:
-    jp p2
 
-max:
-    db 0,0,0,0
 this:
     db 0,0,0,0
 next:
     db 0,0,0,0
 
-
-p2:
+start:
     ld (iy_cache),iy
+    call ROM_CLS
+    ld hl, day
+    ; introduce both at once since this algorithm compute both parts at the same time
+    call intro_p1
     call intro_p2
 compute2:
     ld hl, 0xa000 ; location of input text
@@ -137,8 +90,6 @@ replace:
     ld hl, this
     ldir
     pop hl
-
-    
 notbigger2:
     inc hl
     ld a, (hl)
@@ -151,6 +102,9 @@ notbigger2:
     ld (this+3), a
     jp elfloop2
 sum2:
+    ld ix, max1
+    ld iy,(iy_cache)
+    call p1_result
     ld ix, max1
     ld iy, max2
     call add32le
