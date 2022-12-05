@@ -100,6 +100,92 @@ output:
     ld iy,(iy_cache)
     ld ix, result
     call p1_result   
+    call intro_p2
+    jp part2
+
+
+line1_start:
+    db 0,0
+line2_start:
+    db 0,0
+line3_start:
+    db 0,0
+
+result2:
+    db 0,0,0,0
+tmp2:
+    db 0,0,0,0
+
+
+line_contains_char: ; check if line pointed to by hl contains the char in c, result is in the zero flag, clobbers hl and a
+    ld a, (hl)
+    cp 10
+    jp z, line_contains_char_end
+    cp c
+    ret z
+    inc hl
+    jp line_contains_char
+line_contains_char_end:
+    cp 0
+    ret
+    
+
+part2:
+    ; Part 2 is similar, except instead of half rows, we need to consider three rows
+    ; There's an additional layer of complexity: the item needs to exist in all three lines
+    ; Start by finding the starts of the three lines we care about next
+    ld hl, 0xa000
+find_lines:
+    ; upon arriving at find_lines, hl should point to the first char in the first line
+    ld (line1_start), hl
+find_line_2:
+    inc hl
+    ld a, (hl)
+    cp 0
+    jp z, part2_done
+    cp 10
+    jp nz, find_line_2
+    inc hl
+    ld (line2_start), hl
+find_line_3:
+    inc hl
+    ld a, (hl)
+    cp 10
+    jp nz, find_line_3
+    inc hl
+    ld (line3_start), hl
+found_lines:
+    ; we now have three pointers, one pointing to each line in this group
+    ld ix, (line1_start)
+    ld iy, tmp2
+line1_loop:
+    ld c, (ix)
+    ld hl, (line2_start)
+    call line_contains_char
+    jp nz, next_char
+    ld hl, (line3_start)
+    call line_contains_char
+    jp nz, next_char
+    ; c is the common char
+    ld a, c
+    call priority
+    ld (tmp2), a
+    ld ix, result2
+    call add32le
+    ld hl, (line3_start)
+skip_line:
+    ld a, (hl)
+    inc hl
+    cp 10
+    jp nz, skip_line
+    jp find_lines
+next_char:
+    inc ix
+    jp line1_loop
+part2_done:
+    ld iy,(iy_cache)
+    ld ix, result2
+    call p2_result
 end:
     jp end
 

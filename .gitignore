@@ -1,3 +1,4 @@
 build/
 *.txt.0
 *.tap
+*.wav
