@@ -36,7 +36,6 @@ start:
     call ROM_CLS
     ld hl, day
     call intro_p1
-    call free_all ; init allocator
 compute:
     ld hl, 0xa000
     ld b, 1
@@ -89,7 +88,7 @@ done_lines:
     ld iy, n_crates
     call mul32le
     ld bc, (grid_size)
-    call allocate
+    ld hl, grid
     ld (grid_start), hl
     ld bc, (grid_size)
     ld a, 0x20
@@ -394,23 +393,6 @@ parse8_done:
     pop bc
     ret
 
-allocate: ; bc contains the size in bytes, hl will return the allocated block
-    ld hl, (grid_ptr)
-    push hl
-    add hl, bc
-    ld (grid_ptr), hl
-    pop hl
-    ret
-
-free_all:
-    push hl
-    ld hl, grid
-    ld (grid_ptr), hl
-    pop hl
-    ret
-
-grid_ptr:
-    db 0,0
 grid:
     db 0 ; ... this is the end of the program in memory, and this is where the ""heap"" starts
 
