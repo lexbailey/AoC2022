@@ -8,10 +8,11 @@ bas2tap/bas2tap: bas2tap/bas2tap.c
 bin2tap/bin2tap: bin2tap/bin2tap.hs
 	cd bin2tap && $(MAKE) bin2tap
 
-build/day%/main.bin: day%.asm math.asm print.asm
+build/day%/main.bin: day%.asm math.asm print.asm bigloops.asm
 	mkdir -p $(dir $@)
 	sjasmplus $< --lst=$@.lst
 	mv $(<:.asm=.bin) $@
+	-mv $(<:.asm=.labels) $@.labels
 
 build/day%/preload.bas: preload_template.bas
 	mkdir -p $(dir $@)
@@ -31,7 +32,7 @@ build/day%/input.txt.tap: inputs/day%.txt bin2tap/bin2tap
 build/day%/full.tap: build/day%/preload.tap build/day%/main.bin.tap build/day%/input.txt.tap
 	cat $^ > $@
 
-megatape.tap: build/day1/full.tap build/day2/full.tap build/day3/full.tap build/day4/full.tap
+megatape.tap: build/day1/full.tap build/day2/full.tap build/day3/full.tap build/day4/full.tap build/day5/full.tap
 	cat $^ > $@
 
 %.wav: %.tap

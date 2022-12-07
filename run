@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+make build/day$1/full.tap && xpeccy build/day$1/full.tap -l build/day$1/main.bin.labels
