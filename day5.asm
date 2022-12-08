@@ -18,6 +18,28 @@ iy_cache:
 result:
     db 0,0,0,0
 
+four:
+    db 4,0,0,0
+to_zero:
+four_n_stacks:
+    db 0,0,0,0
+four_stack:
+    db 0,0,0,0
+hmax_mi:
+    db 0,0,0,0
+grid_offset:
+    db 0,0,0,0
+row_offset:
+    db 0,0,0,0
+stack_start:
+    db 0,0,0,0
+input_offset:
+    db 0,0,0,0
+
+counter_a:
+    db 0,0,0,0
+counter_b:
+    db 0,0,0,0
 n_stacks: ; number of stacks in the diagram
     db 0,0,0,0
 n_crates: ; number of crates in total
@@ -26,10 +48,35 @@ h_max: ; height of the tallest stack (only used for parsing)
     db 0,0,0,0
 grid_size:
     db 0,0,0,0
-
+extended_grid_size:
+    db 0,0,0,0
 
 grid_start:
     db 0,0
+
+
+to_zero_len: equ $ - to_zero
+
+re_zero:
+    push af
+    push hl
+    push bc
+    push de
+    ld a, 0
+    ld de, to_zero
+    ld (de), a
+    inc de
+    ld hl, to_zero
+    ld bc, to_zero_len
+    dec bc
+    ldir
+    pop de
+    pop bc
+    pop hl
+    pop af
+    ret
+
+
 
 start:
     ld (iy_cache),iy
@@ -87,10 +134,12 @@ done_lines:
     ld ix, grid_size ; n_stacks
     ld iy, n_crates
     call mul32le
-    ld bc, (grid_size)
     ld hl, grid
     ld (grid_start), hl
-    ld bc, (grid_size)
+    ld hl, (grid_size)
+    ld bc, (n_crates)
+    add hl, bc
+    ld bc, hl
     ld a, 0x20
     ld hl, (grid_start)
     ld (hl), a
@@ -98,29 +147,6 @@ done_lines:
     inc de
     ldir
     jp do_transform
-four:
-    db 4,0,0,0
-four_n_stacks:
-    db 0,0,0,0
-four_stack:
-    db 0,0,0,0
-hmax_mi:
-    db 0,0,0,0
-grid_offset:
-    db 0,0,0,0
-row_offset:
-    db 0,0,0,0
-stack_start:
-    db 0,0,0,0
-input_offset:
-    db 0,0,0,0
-
-
-counter_a:
-    db 0,0,0,0
-counter_b:
-    db 0,0,0,0
-
 do_transform:
     ld bc, 4
     ld de, four_n_stacks
@@ -253,6 +279,10 @@ instr_loop:
     ; b is the number of repetitions
     ; e is the source
     ; a is the dest
+    push bc
+delete_for_p2:
+    jp repeat_poppush
+    jp repeat_poppush2
 repeat_poppush:
     push af
     ld a, e
@@ -261,6 +291,7 @@ repeat_poppush:
     pop af
     call push_stack
     djnz repeat_poppush
+    pop bc
     inc hl
     push af
     ld a, (hl)
@@ -271,6 +302,46 @@ repeat_poppush:
 done_poppush:
     pop af
     jp output
+
+repeat_poppush2:
+
+    push af
+    ld a, e
+    call pop_stack
+    ld d, a
+    push hl
+    ld hl, n_stacks
+    ld a, (hl)
+    pop hl
+    call push_stack
+    pop af
+    djnz repeat_poppush2
+
+repeat_poppush2_2:
+
+    push af
+    push hl
+    ld hl, n_stacks
+    ld a, (hl)
+    pop hl
+    call pop_stack
+    ld d, a
+    pop af
+    call push_stack
+    djnz repeat_poppush2_2
+
+    pop bc
+    inc hl
+    push af
+    ld a, (hl)
+    cp 0
+    jp z, done_poppush2
+    pop af
+    jp instr_loop
+done_poppush2:
+    pop af
+    jp output2
+
 
 stack_num:
     db 0,0,0,0
@@ -300,7 +371,7 @@ pop_stack:
     pop hl
     ret
 
-push_stack:
+push_stack: ; pushes d onto stack a
     push af
     push hl
     push bc
@@ -344,6 +415,9 @@ found_stack_top:
 result1_text:
     db AT, 2, 0, "              ", AT, 2, 4
 result1_text_len: equ $ - result1_text
+result2_text:
+    db AT, 4, 0, "              ", AT, 4, 4
+result2_text_len: equ $ - result2_text
 
 output:
     ld iy, (iy_cache)
@@ -362,6 +436,33 @@ output_loop:
     pop hl
     add hl, de
     djnz output_loop
+part2:
+    ld iy, (iy_cache)
+    call intro_p2
+    ld ix, delete_for_p2
+    ld (ix), 0
+    ld (ix+1), 0
+    ld (ix+2), 0
+    call re_zero
+    jp compute
+output2:
+    ld iy, (iy_cache)
+    ld de, result2_text
+    ld bc, result2_text_len
+    call ROM_PRINT
+    ld hl, n_stacks
+    ld b, (hl)
+    ld de, (n_crates)
+    ld hl, (grid_start)
+output_loop2:
+    push hl
+    call search_top
+    ld a, (hl)
+    rst 0x10
+    pop hl
+    add hl, de
+    djnz output_loop2
+    
 end:
     jp end
 
