@@ -34,4 +34,5 @@ end:
 prog_end:
     ; TODO fill in day number
     savebin "dayXX.bin",prog_start,prog_end-prog_start
+    ;labelslist "dayXX.labels"
 
