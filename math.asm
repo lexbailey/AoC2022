@@ -345,6 +345,7 @@ str32le_tmp1:
 parse32le: ; takes a buffer (hl) and consumes digits until a non-digit is reached, leaves hl at the end of the parsed number, stores number at (ix)
     ; this function works by multiplying by 10 and adding the next char as unit value until it finds an unrecognised char
     push af
+    push iy
     ; (ix) = 0
     ld (ix), 0
     ld (ix+1), 0
@@ -368,6 +369,7 @@ parse32le_loop:
     inc hl
     jp parse32le_loop
 parse32le_done:
+    pop iy
     pop af
     ret
 parse32le_tmp1:
