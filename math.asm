@@ -376,3 +376,18 @@ parse32le_done:
     ret
 parse32le_tmp1:
     db 0,0,0,0
+
+parses32le:
+    push af
+    ld a, (hl)
+    cp 0x2D ; '-'
+    jp nz, parses32le_positive
+    inc hl
+    call parse32le
+    call inv32le
+    pop af
+    ret
+parses32le_positive:
+    call parse32le
+    pop af
+    ret
