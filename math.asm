@@ -278,6 +278,8 @@ dec_ten:
 dec_one:
 dec_last:
     db 0x01, 0x00, 0x00, 0x00
+dec_zero:
+    db 0,0,0,0
 
 str32le: ; converts (ix) to a string, iy points to the buffer where the string will be placed
     ; Copy (ix) to (tmp1)

@@ -14,8 +14,14 @@ day:
 iy_cache:
     db 0, 0
 
-result:
+result1:
     db 0,0,0,0
+result2:
+    db 0x80, 0x1d, 0x2c, 0x04 ; initially 70000000
+to_free:
+    db 0,0,0,0
+space:
+    db 0x00, 0x5a, 0x62, 0x02 ; subtracted from used space to find out how much to free
 
 root_ptr:
     dw 0,0
@@ -145,7 +151,7 @@ parse_done:
     ; tree structure has been built, now reduce the tree recursively
     ld hl, tree ; pointer to root of tree
     call reduce_tree
-    jp output
+    jp calculate_results
     
 
 reduce_tree:
@@ -188,10 +194,58 @@ children_done:
     pop af
     ret
 
+calculate_results:
+    ; nodes are now reduced, time to calculate the result values
+    ; Copy the root value to to_free
+    ld hl, tree ; first node
+    ld de, to_free
+    ld bc, 4
+    ldir
+    ; subtract the space value
+    ld ix, to_free
+    ld iy, space
+    call sub32le
+    ; to_free is now correc6t
+    ld bc, 24 ; size of a node
+    ld hl, tree ; first node
+iter_nodes:
+    call do_node
+    add hl, bc
+    ld ix, hl
+    ld iy, dec_zero
+    call eq32le
+    cp 1
+    jp nz, iter_nodes
+    jp output
+
+threshold:
+    db 0xa0, 0x86, 0x01, 0x00 ; 100000
+
+do_node:
+    ; hl points to a node to do computation on
+    push hl
+    push ix
+    push iy
+    ld ix, hl
+    ld iy, threshold
+    call gt32le
+    cp 1
+    jp z, p1done_node
+    ld ix, result1
+    ld iy, hl
+    call add32le
+p1done_node:
+    pop iy
+    pop ix
+    pop hl
+    ret
+
 output:
     ld iy,(iy_cache)
-    ld ix, result
+    ld ix, result1
     call p1_result   
+    ld ix, result2
+    call p2_result   
 end:
     jp end
 
@@ -206,6 +260,15 @@ new_node:
     add hl, bc
     pop bc
     ld (next_space), hl
+    pop hl
+    push hl
+    push bc
+    ld b, 24
+blank_node:
+    ld (hl), 0
+    inc hl
+    djnz blank_node
+    pop bc
     pop hl
     ret
 
