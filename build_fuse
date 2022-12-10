@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -e
-cd fuse-emulator-for-ci
+pushd libspectrum
 ./autogen.sh
 ./configure
-make fuse
+sudo make install
+popd
+pushd fuse-emulator-for-ci
+./autogen.sh
+./configure
+make
+popd

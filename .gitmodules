@@ -7,3 +7,6 @@
 [submodule "fuse-emulator-for-ci"]
 	path = fuse-emulator-for-ci
 	url = git@github.com:lexbailey/fuse-emulator-for-ci.git
+[submodule "libspectrum"]
+	path = libspectrum
+	url = https://git.code.sf.net/p/fuse-emulator/libspectrum
