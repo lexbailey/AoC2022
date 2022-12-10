@@ -8,5 +8,4 @@ jobs:
               with:
                   submodules: recursive
             - run: sudo apt-get install -y xonsh
-            - uses: mxschmitt/action-tmate@v3
             - run: env TERM=xterm LD_LIBRARY_PATH=/usr/local/lib ./run_tests
