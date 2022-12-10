@@ -226,6 +226,7 @@ do_node:
     push hl
     push ix
     push iy
+    push bc
     ld ix, hl
     ld iy, threshold
     call gt32le
@@ -235,6 +236,20 @@ do_node:
     ld iy, hl
     call add32le
 p1done_node:
+    ld ix, hl
+    ld iy, result2
+    call gte32le
+    cp 1
+    jp z, p2done_node
+    ld iy, to_free
+    call gte32le
+    cp 1
+    jp nz, p2done_node
+    ld de, result2
+    ld bc, 4
+    ldir
+p2done_node:
+    pop bc
     pop iy
     pop ix
     pop hl
