@@ -4,6 +4,7 @@
 prog_start:
     jp start 
 
+    include "wait.asm"
     include "print.asm"
     include "math.asm"
     include "intro.asm"
@@ -462,7 +463,7 @@ output_loop2:
     pop hl
     add hl, de
     djnz output_loop2
-    
+    call large_delay
 end:
     jp end
 

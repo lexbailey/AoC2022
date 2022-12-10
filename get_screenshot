@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+mkdir -p screenshots/actual
+make build/day$1/full.tap
+./fuse-emulator-for-ci/fuse --halt-on-fetch $(./find_end build/day$1/main.bin.labels) --screenshot-addr $(./find_end build/day$1/main.bin.labels) --screenshot-file screenshots/actual/screenshot$1.png --auto-load build/day$1/full.tap

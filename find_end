@@ -1,0 +1,12 @@
+#!/usr/bin/env python3
+import sys
+import re
+lines = open(sys.argv[1]).read().split('\n')
+for line in lines:
+    m = re.match(r'([0-9a-fA-F]+):([0-9a-fA-F]+) end', line)
+    if m:
+        page, addr = m.groups()
+        abs_addr = (int(page, 16) * 0x4000) + int(addr, 16)
+        print(abs_addr)
+        sys.exit(0)
+sys.exit(1)

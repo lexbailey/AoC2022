@@ -4,6 +4,7 @@
 prog_start:
     jp start 
 
+    include "wait.asm"
     include "print.asm"
     include "math.asm"
     include "intro.asm"
@@ -250,6 +251,7 @@ output:
     ld iy,(iy_cache)
     ld ix,strength 
     call p1_result
+    call large_delay
 end:
     jp end
 

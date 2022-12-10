@@ -4,6 +4,7 @@
 prog_start:
     jp start 
 
+    include "wait.asm"
     include "print.asm"
     include "math.asm"
     include "intro.asm"
@@ -163,9 +164,11 @@ output2:
     ld iy,(iy_cache)
     ld ix, result2
     call p2_result       
+    call large_delay
 end:
     jp end
 
 prog_end:
     savebin "day4.bin",prog_start,prog_end-prog_start
+    labelslist "day4.labels"
 
