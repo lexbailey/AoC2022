@@ -10,3 +10,6 @@ pushd fuse-emulator-for-ci
 ./configure
 make
 popd
+pushd
+sudo make install
+popd

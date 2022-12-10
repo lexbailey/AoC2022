@@ -10,3 +10,6 @@
 [submodule "libspectrum"]
 	path = libspectrum
 	url = https://git.code.sf.net/p/fuse-emulator/libspectrum
+[submodule "sjasmplus"]
+	path = sjasmplus
+	url = https://github.com/z00m128/sjasmplus.git

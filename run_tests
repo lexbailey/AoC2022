@@ -21,7 +21,7 @@ def perf_report(start_time, end_time):
         return f'{yellow}{tot:.01f}s{reset} - acceptable performance'
     return f'{red}{tot:.00f}s{reset} - poor performance'
 
-./build_fuse
+./build_tools
 
 success = True
 
