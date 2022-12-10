@@ -35,7 +35,7 @@ for f in files:
         #    continue # for now
         $RAISE_SUBPROC_ERROR = False # You'd expect the !() syntax to handle this nicely, but it does not
         start_time = time.time()
-        result = !(timeout $TIMEOUT xvfb-run -- ./get_screenshot $day)
+        result = !(timeout $TIMEOUT xvfb-run -a ./get_screenshot $day)
         rc = result.rtn
         end_time = time.time()
         msg = ''
@@ -45,12 +45,12 @@ for f in files:
                 errors.append(f'Program for day {$day} timed out after {$TIMEOUT} seconds')
             else:
                 msg = 'Failed to run program'
-                errors.append(result.raw_err.decode())
+                errors.append(result.raw_out.decode() + '\n' + result.raw_err.decode())
         else:
             result = !(compare -metric AE screenshots/actual/screenshot$day.png screenshots/expected/screenshot$day.png /dev/null)
             if result.rtn != 0:
                 msg = 'Screenshot check failed'
-                errors.append(result.raw_err.decode())
+                errors.append(result.raw_out.decode() + '\n' + result.raw_err.decode())
             else:
                 msg = 'Screenshot matches'
         $RAISE_SUBPROC_ERROR = True
