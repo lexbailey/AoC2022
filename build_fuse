@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -e
+cd fuse-emulator-for-ci
+./autogen.sh
+./configure
+make fuse

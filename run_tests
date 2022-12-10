@@ -1,0 +1,78 @@
+#!/usr/bin/env xonsh
+import os
+import re
+import sys
+import time
+
+$RAISE_SUBPROC_ERROR = True
+$TIMEOUT=60
+
+bold=$(tput bold)
+red=$(tput setaf 1)
+green=$(tput setaf 2)
+yellow=$(tput setaf 3)
+reset=$(tput sgr0)
+
+def perf_report(start_time, end_time):
+    tot = end_time - start_time
+    if tot < 5:
+        return f'{green}{tot:.03f}s{reset} - good performance'
+    if tot < 30:
+        return f'{yellow}{tot:.01f}s{reset} - acceptable performance'
+    return f'{red}{tot:.00f}s{reset} - poor performance'
+
+./build_fuse
+
+success = True
+
+files = os.listdir('.')
+errors = []
+for f in files:
+    m = re.match(r'day(\d+).asm',f)
+    if m:
+        $day = m.groups()[0]
+        #if $day == '5':
+        #    continue # for now
+        $RAISE_SUBPROC_ERROR = False # You'd expect the !() syntax to handle this nicely, but it does not
+        start_time = time.time()
+        result = !(timeout $TIMEOUT xvfb-run -- ./get_screenshot $day)
+        rc = result.rtn
+        end_time = time.time()
+        msg = ''
+        if result.rtn != 0:
+            if result.rtn == 124:
+                msg = 'Program timed out'
+                errors.append(f'Program for day {$day} timed out after {$TIMEOUT} seconds')
+            else:
+                msg = 'Failed to run program'
+                errors.append(result.raw_err.decode())
+        else:
+            result = !(compare -metric AE screenshots/actual/screenshot$day.png screenshots/expected/screenshot$day.png /dev/null)
+            if result.rtn != 0:
+                msg = 'Screenshot check failed'
+                errors.append(result.raw_err.decode())
+            else:
+                msg = 'Screenshot matches'
+        $RAISE_SUBPROC_ERROR = True
+        report = ''
+        if result.rtn != 0:
+            success = False
+            print(f"{bold}{red}❌ Fail: {reset}", end='')
+        else:
+            print(f"{bold}{green}✅ Pass: {reset}", end=''); tput sgr0
+            report = ', ' + perf_report(start_time, end_time)
+        print(f'day {$day}: {msg}{report}')
+
+print()
+if not success:
+    print(f"{bold}{red}There were failures{reset}", end='')
+    print()
+    print("--- Errors encountered ---")
+    for e in errors:
+        print(e)
+        print("--------------------------")
+    sys.exit(1)
+else:
+    print(f"{bold}{green}All tests passed{reset}", end='')
+    sys.exit(0)
+
