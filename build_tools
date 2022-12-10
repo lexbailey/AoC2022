@@ -8,7 +8,7 @@ popd
 pushd fuse-emulator-for-ci
 ./autogen.sh
 ./configure
-make
+sudo make install
 popd
 pushd sjasmplus
 sudo make install
