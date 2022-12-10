@@ -5,7 +5,8 @@ import sys
 import time
 
 $RAISE_SUBPROC_ERROR = True
-$TIMEOUT=60
+# 20 minutes timeout
+$TIMEOUT=1200
 
 bold=$(tput bold)
 red=$(tput setaf 1)
@@ -27,12 +28,16 @@ success = True
 
 files = os.listdir('.')
 errors = []
+
+numbered_files = []
 for f in files:
     m = re.match(r'day(\d+).asm',f)
     if m:
-        $day = m.groups()[0]
-        #if $day == '5':
-        #    continue # for now
+        day = m.groups()[0]
+        numbered_files.append((f, day))
+numbered_files.sort(key=lambda a: int(a[1]))
+for f, n in numbered_files:
+        $day = n
         $RAISE_SUBPROC_ERROR = False # You'd expect the !() syntax to handle this nicely, but it does not
         start_time = time.time()
         result = !(timeout $TIMEOUT xvfb-run -a ./get_screenshot $day)
