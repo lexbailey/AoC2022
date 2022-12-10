@@ -7,7 +7,7 @@ sudo make install
 popd
 pushd fuse-emulator-for-ci
 ./autogen.sh
-./configure
+./configure --with-audio-driver=null # fuse seems to get unhappy if it's configured with audio but then can't connect to an audio service on start
 sudo make install
 popd
 pushd sjasmplus
