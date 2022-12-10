@@ -8,5 +8,5 @@ jobs:
               with:
                   submodules: recursive
             - run: sudo apt-get install -y xonsh
-            - run: env TERM=xterm ./run_tests
             - uses: mxschmitt/action-tmate@v3
+            - run: env TERM=xterm ./run_tests
