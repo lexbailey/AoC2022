@@ -28,6 +28,7 @@ start:
     call ROM_CLS
     ld hl, day
     call intro_p1
+    call intro_p2
 compute:
     ld hl, tree
     ld (next_space), hl
@@ -48,7 +49,6 @@ parse_loop:
         inc hl
         inc hl
         cp 0x63 ; if a == 'c'
-;        jp nz, not_c
         jp nz, parse_loop
             ld a, (hl)
             cp 0x2f ; if a == '/'
@@ -76,8 +76,6 @@ not_dot:
             push hl
             call new_node
             ld bc, hl
-            ;ld b, h
-            ;ld c, l
             ld ix, hl
             ld (iy), l
             ld (iy+1), h
@@ -108,8 +106,6 @@ skip_line_loop:
             cp 0x0a
             jp nz, skip_line_loop
             jp parse_loop
-;not_c:
-;        jp parse_loop
 not_dollar:
     cp 0x64 ; if a == 'd'
     jp nz, not_d
@@ -146,7 +142,51 @@ skip_line_loop3:
 tmp:
     db 0,0,0,0
 parse_done:
+    ; tree structure has been built, now reduce the tree recursively
+    ld hl, tree ; pointer to root of tree
+    call reduce_tree
+    jp output
+    
 
+reduce_tree:
+    ; hl points to the current node
+    push af
+    push bc
+    push hl
+    push ix
+    ld ix, hl
+    inc hl
+    inc hl
+    inc hl
+    inc hl
+    ; hl now points to the first child pointer
+reduce_children:
+    ; first reduce the child node if it exists
+    ld a, 0
+    ld c, (hl)
+    inc hl
+    ld b, (hl)
+    inc hl
+    cp c
+    jp nz, reduce_child
+    cp b
+    jp nz, reduce_child
+    jp children_done
+reduce_child:
+    push hl
+    ld hl, bc
+    call reduce_tree
+    ; child has been reduced, now we can add its value to this node
+    ld iy, bc
+    call add32le
+    pop hl
+    jp reduce_children
+children_done:
+    pop ix
+    pop hl
+    pop bc
+    pop af
+    ret
 
 output:
     ld iy,(iy_cache)
