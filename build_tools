@@ -10,6 +10,6 @@ pushd fuse-emulator-for-ci
 ./configure
 make
 popd
-pushd
+pushd sjasmplus
 sudo make install
 popd
