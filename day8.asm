@@ -4,6 +4,7 @@
 prog_start:
     jp start 
 
+    include "wait.asm"
     include "print.asm"
     include "math.asm"
     include "intro.asm"
@@ -228,7 +229,13 @@ dir4:
     ld (dy), a
     ret
     
-
+one_prod:
+    ld ix, prod
+    ld (ix), 1
+    ld (ix+1), 0
+    ld (ix+2), 0
+    ld (ix+3), 0
+    ret
 
 iterate_trees:
     ld hl, height
@@ -248,8 +255,7 @@ outer_loop:
 inner_loop:
     push bc
     ; prod = 1
-    ld a, 1
-    ld (prod), a
+    call one_prod
     ; flag = 0
     ld a, 0
     ld (flag), a
@@ -303,6 +309,7 @@ output:
     call p1_result   
     ld ix, max_prod
     call p2_result   
+    call large_delay
 end:
     jp end
 
