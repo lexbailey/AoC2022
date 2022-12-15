@@ -3,9 +3,9 @@ big_loop: ; iy should contain the max value, ix should point to a counter variab
     ld (big_loop_dest), hl
     ;init the counter
     ld (ix), 0
-    ld (ix+0), 0
     ld (ix+1), 0
     ld (ix+2), 0
+    ld (ix+3), 0
     push hl
 big_loop_start:
     db 0xCD

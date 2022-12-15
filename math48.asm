@@ -29,6 +29,36 @@ add48le: ; (ix) = (ix) + (iy)
     pop af
     ret
 
+add48le_iy: ; (iy) = (iy) + (ix)
+    push af
+    or a
+
+    ld a,(iy)
+    adc a,(ix)
+    ld (iy), a
+
+    ld a, (iy+1)
+    adc a,(ix+1)
+    ld (iy+1), a
+
+    ld a, (iy+2)
+    adc a,(ix+2)
+    ld (iy+2), a
+
+    ld a, (iy+3)
+    adc a,(ix+3)
+    ld (iy+3), a
+
+    ld a, (iy+4)
+    adc a,(ix+4)
+    ld (iy+4), a
+
+    ld a, (iy+5)
+    adc a,(ix+5)
+    ld (iy+5), a
+    pop af
+    ret
+
 one48le:
     db 1, 0, 0, 0, 0, 0
 
@@ -66,19 +96,45 @@ inv48le: ; (ix) = -(ix)
     pop iy
     ret
 
-sub48le: ; (ix) = (ix) - (iy)
+inv48le_iy: ; (iy) = -(iy)
+    push af
+
+    ld a, (iy)
+    cpl
+    ld (iy), a
+
+    ld a, (iy+1)
+    cpl
+    ld (iy+1), a
+
+    ld a, (iy+2)
+    cpl
+    ld (iy+2), a
+
+    ld a, (iy+3)
+    cpl
+    ld (iy+3), a
+
+    ld a, (iy+4)
+    cpl
+    ld (iy+4), a
+
+    ld a, (iy+5)
+    cpl
+    ld (iy+5), a
+
+    pop af
     push ix
-    push iy
-    pop ix
-    call inv48le
-    pop ix
-    call add48le
-    push ix
-    push iy
-    pop ix
-    call inv48le
+    ld ix, one48le
+    call add48le_iy
     pop ix
     ret
+
+
+sub48le: ; (ix) = (ix) - (iy)
+    call inv48le_iy
+    call add48le
+    jp inv48le_iy
 
 sra48le: ; (ix) = (ix)>>1
     sra (ix+5)
@@ -469,12 +525,12 @@ divmod48le_tmp:
     db 0,0,0,0,0,0
 divmod48le:
     push ix
-    push ix
-    ld ix, dec48_zero
-    call eq48le
-    pop ix
-    cp 1
-    ret z ; TODO better way to handle div by zero?
+    ;;push ix
+    ;;ld ix, dec48_zero
+    ;;call eq48le
+    ;;pop ix
+    ;;cp 1
+    ;;ret z ; TODO better way to handle div by zero?
     ; zero both the quotient and the remainder
     ld hl, divmod48le_quotient
     ld (hl), 0
@@ -482,8 +538,7 @@ divmod48le:
     ld bc, 11
     ldir
     ; make a copy of the numerator
-    push ix
-    pop hl
+    ld hl, ix
     ld de, divmod48le_tmp
     ld bc, 6
     ldir
@@ -514,8 +569,7 @@ divmod48le_loop:
 divmod48le_not_gte:
     djnz divmod48le_loop
     pop ix
-    push ix
-    pop de
+    ld de, ix
     ld hl, divmod48le_quotient
     ld bc, 6
     ldir

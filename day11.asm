@@ -4,6 +4,7 @@
 prog_start:
     jp start 
 
+    include "wait.asm"
     include "print.asm"
     include "math.asm"
     include "math48.asm"
@@ -15,10 +16,6 @@ day:
 
 iy_cache:
     db 0, 0
-
-result:
-    db 0,0,0,0,0,0
-
 
 add_old: ; (ix) += (ix)
     ld iy, ix
@@ -68,6 +65,12 @@ parse:
     ld ix, monkey_size
     ld hl, monkey
     ld (ix), hl
+    ; zero the monkey list
+    ld hl, monkeys
+    ld (hl), 0
+    ld de, monkeys+1
+    ld bc, monkey * 10 ; yes this is one byte too far, that's deliberate, since the op of a valid monkey is never 0, the end of the list is marked by a zero byte, so the monkey list actually has one byte too much space in it so that this byte is sure to be zero even if the full ten monkeys are there
+    ldir
     ; reset to first monkey
     ld hl, monkeys
     ld (cur_monkey), hl
@@ -399,7 +402,7 @@ three:
 twenty:
     db 20,0,0,0,0,0
 ten_thousand:
-    db 10,27,0,0,0,0
+    db 0x10,0x27,0,0,0,0
 
 start:
     ld (iy_cache),iy
@@ -410,11 +413,25 @@ compute:
     call parse
     ld iy, twenty
     call do_rounds
-
 output:
     ld iy,(iy_cache)
     ld ix, bt
-    call p1_result   
+    call p1_result
+    call intro_p2
+
+    ld ix, delete_for_no_div3
+    ld (ix), 0
+    ld (ix+1), 0
+    ld (ix+2), 0
+    
+    call parse
+    ld iy, ten_thousand
+    call do_rounds
+    ld iy,(iy_cache)
+    ld ix, bt
+    call p2_result
+
+    call large_delay
 end:
     jp end
 
