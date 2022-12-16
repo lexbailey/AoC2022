@@ -48,9 +48,6 @@ prod:
 cur_monkey:
     db 0,0
 
-op_fn_ptr:
-    db 0,0
-
 tmp_monkey_index:
     db 0,0,0,0,0,0
 
@@ -69,7 +66,7 @@ parse:
     ld hl, monkeys
     ld (hl), 0
     ld de, monkeys+1
-    ld bc, monkey * 10 ; yes this is one byte too far, that's deliberate, since the op of a valid monkey is never 0, the end of the list is marked by a zero byte, so the monkey list actually has one byte too much space in it so that this byte is sure to be zero even if the full ten monkeys are there
+    ld bc, (monkey * 10)+1 ; yes this is two bytes too far, that's deliberate, since the op of a valid monkey is never 0, the end of the list is marked by a zero in the high byte of op, so the monkey list actually has two bytes too much space in it so that this byte is sure to be zero even if the full ten monkeys are there
     ldir
     ; reset to first monkey
     ld hl, monkeys
@@ -325,7 +322,7 @@ longjump_done:
     ld de, monkey
     add ix, de
     ld (cur_monkey), ix 
-    ld a, (ix)
+    ld a, (ix+1) ; high byte of op, always above 0 for valid monkeys because the program starts at 0x8000
     cp 0
     jp z, round_done
     jp monkey_round_loop
@@ -385,7 +382,7 @@ done_this_monkey:
     ld de, monkey
     add ix, de
     ; check for end of monkey list
-    ld a, (ix)
+    ld a, (ix + 1)
     cp 0
     jp z, scan_done
     jp scan_monkeys

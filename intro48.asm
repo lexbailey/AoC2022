@@ -8,6 +8,7 @@ intro_p1:
     push af
     push de
     push bc
+    di
     ld a, (hl)
     ld (daynum), a
     inc hl

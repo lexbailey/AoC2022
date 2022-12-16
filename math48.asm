@@ -252,7 +252,7 @@ multen48le_tmp1:
 ; TODO extract this to a separate file, it doesn't need to be duplicated
 hexit48: ; Converts a from a number in the range 0-15 to an ascii value 0-9A-F
     cp 10
-    jp m, lt10
+    jp m, lt1048
     add a, 7
 lt1048:
     add a, 48
