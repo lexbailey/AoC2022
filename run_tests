@@ -71,7 +71,7 @@ for f, n in numbered_files:
         print(f'day {$day}: {msg}{report}')
 
 if timeouts:
-    print('\nSome runs timed out, trying again with tubo mode and no performance testing...')
+    print('\n\nSome runs timed out, trying again with turbo mode and no performance testing...')
     for n in timeouts:
         $day = n
         $RAISE_SUBPROC_ERROR = False
