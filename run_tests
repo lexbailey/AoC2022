@@ -5,8 +5,8 @@ import sys
 import time
 
 $RAISE_SUBPROC_ERROR = True
-# 20 minutes timeout
-$TIMEOUT=1200
+# 5 minutes timeout
+$TIMEOUT=300
 
 bold=$(tput bold)
 red=$(tput setaf 1)
@@ -22,8 +22,6 @@ def perf_report(start_time, end_time):
         return f'{yellow}{tot:.01f}s{reset} - acceptable performance'
     return f'{red}{tot:.00f}s{reset} - poor performance'
 
-./build_tools
-
 success = True
 
 files = os.listdir('.')
@@ -35,19 +33,22 @@ for f in files:
     if m:
         day = m.groups()[0]
         numbered_files.append((f, day))
+
+timeouts = []
 numbered_files.sort(key=lambda a: int(a[1]))
 for f, n in numbered_files:
         $day = n
         $RAISE_SUBPROC_ERROR = False # You'd expect the !() syntax to handle this nicely, but it does not
         start_time = time.time()
         result = !(timeout $TIMEOUT xvfb-run -a ./get_screenshot $day)
-        rc = result.rtn
+        run_rc = result.rtn
         end_time = time.time()
         msg = ''
         if result.rtn != 0:
             if result.rtn == 124:
                 msg = 'Program timed out'
                 errors.append(f'Program for day {$day} timed out after {$TIMEOUT} seconds')
+                timeouts.append(n)
             else:
                 msg = 'Failed to run program'
                 errors.append(result.raw_out.decode() + '\n' + result.raw_err.decode())
@@ -61,12 +62,42 @@ for f, n in numbered_files:
         $RAISE_SUBPROC_ERROR = True
         report = ''
         if result.rtn != 0:
-            success = False
+            if run_rc != 124:
+                success = False
             print(f"{bold}{red}❌ Fail: {reset}", end='')
         else:
-            print(f"{bold}{green}✅ Pass: {reset}", end=''); tput sgr0
+            print(f"{bold}{green}✅ Pass: {reset}", end='')
             report = ', ' + perf_report(start_time, end_time)
         print(f'day {$day}: {msg}{report}')
+
+if timeouts:
+    print('\nSome runs timed out, trying again with tubo mode and no performance testing...')
+    for n in timeouts:
+        $day = n
+        $RAISE_SUBPROC_ERROR = False
+        result = !(timeout $TIMEOUT xvfb-run -a ./get_screenshot_fast $day)
+        if result.rtn != 0:
+            if result.rtn == 124:
+                msg = 'Program timed out again'
+                errors.append(f'Fast mode retry for day {$day} still timed out after {$TIMEOUT} seconds')
+            else:
+                msg = 'Failed to run program'
+                errors.append(f'Fast mode retry for day {$day} failed, but not because of timeout:\n' + result.raw_out.decode() + '\n' + result.raw_err.decode())
+        else:
+            result = !(compare -metric AE screenshots/actual/screenshot$day.png screenshots/expected/screenshot$day.png /dev/null)
+            if result.rtn != 0:
+                msg = 'Screenshot check failed'
+                errors.append(result.raw_out.decode() + '\n' + result.raw_err.decode())
+            else:
+                msg = 'Screenshot matches'
+        $RAISE_SUBPROC_ERROR = True
+        if result.rtn != 0:
+            success = False
+            print(f"{bold}{red}❌ Attempt 2 Fail: {reset}", end='')
+        else:
+            print(f"{bold}{green}✅ Attempt 2 Pass: {reset}", end='')
+            report = ', ' + perf_report(start_time, end_time)
+        print(f'day {$day}: {msg} (fast mode, real time unknown)')
 
 print()
 if not success:

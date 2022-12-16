@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -e
+mkdir -p screenshots/actual
+make build/day$1/full.tap
+fuse --speed 9999999 --halt-on-fetch $(./find_end build/day$1/main.bin.labels) --screenshot-addr $(./find_end build/day$1/main.bin.labels) --screenshot-file screenshots/actual/screenshot$1.png --auto-load build/day$1/full.tap

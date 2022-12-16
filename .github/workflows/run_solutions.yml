@@ -8,4 +8,5 @@ jobs:
               with:
                   submodules: recursive
             - run: sudo apt-get install -y xonsh
+            - run: env TERM=xterm LD_LIBRARY_PATH=/usr/local/lib ./build_tools
             - run: env TERM=xterm LD_LIBRARY_PATH=/usr/local/lib ./run_tests
