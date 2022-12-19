@@ -100,3 +100,49 @@ mul16le_tmp1:
 mul16le_tmp2:
     db 0,0
 
+
+eq16le: ; a = (ix) == (iy)
+    push bc
+    ld a, (ix+0)
+    ld c, (iy+0)
+    cp c
+    jp nz, eq16le_noteq
+    ld a, (ix+1)
+    ld c, (iy+1)
+    cp c
+    jp nz, eq16le_noteq
+    pop bc
+    ld a, 1
+    ret
+eq16le_noteq:
+    pop bc
+    ld a, 0
+    ret
+
+gt16le: ; a = (ix) > (iy)
+    push bc
+    ld a, (iy+1)
+    ld c, (ix+1)
+    cp c
+    jp c, gt16le_gt
+    jp nz, gt16le_ngt
+
+    ld a, (iy)
+    ld c, (ix)
+    cp c
+    jp c, gt16le_gt
+gt16le_ngt:
+    pop bc
+    ld a, 0
+    ret
+gt16le_gt:
+    pop bc
+    ld a, 1
+    ret
+
+gte16le:
+    call gt16le
+    cp 1
+    ret z
+    jp eq16le ; tail call
+

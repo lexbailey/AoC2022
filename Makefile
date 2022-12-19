@@ -32,7 +32,7 @@ build/day%/input.txt.tap: inputs/day%.txt bin2tap/bin2tap
 build/day%/full.tap: build/day%/preload.tap build/day%/main.bin.tap build/day%/input.txt.tap
 	cat $^ > $@
 
-megatape.tap: $(patsubst %,build/day%/full.tap,1 2 3 4 5 6 7 8 10)
+megatape.tap: $(patsubst %,build/day%/full.tap,1 2 3 4 5 6 7 8 9 10 11)
 	cat $^ > $@
 
 %.wav: %.tap
