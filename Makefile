@@ -26,13 +26,13 @@ build/day%/main.bin.tap: build/day%/main.bin bin2tap/bin2tap
 
 build/day%/input.txt.tap: inputs/day%.txt bin2tap/bin2tap
 	cat $< <(echo -ne '\x00') > $(<).0
-	bin2tap/bin2tap 0xa000 AoC22d`printf '%s' $@ | sed -E 's#.*day([0-9]+).*#\1#'`i $(<).0
+	bin2tap/bin2tap `cat special_cases/input_addr_day\`printf '%s' $@ | sed -E 's#.*day([0-9]+).*#\1#'\` || echo 0xa000` AoC22d`printf '%s' $@ | sed -E 's#.*day([0-9]+).*#\1#'`i $(<).0
 	mv $(<).0.tap $@ 
 
 build/day%/full.tap: build/day%/preload.tap build/day%/main.bin.tap build/day%/input.txt.tap
 	cat $^ > $@
 
-megatape.tap: $(patsubst %,build/day%/full.tap,1 2 3 4 5 6 7 8 9 10 11)
+megatape.tap: $(patsubst %,build/day%/full.tap,1 2 3 4 5 6 7 8 9 10 11 12)
 	cat $^ > $@
 
 %.wav: %.tap

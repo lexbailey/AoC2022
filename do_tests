@@ -22,6 +22,7 @@ for $f in test_list:
     make "$bd/preload.tap" "$bd/main.bin.tap"
     cp $path $path.0
     printf '\x00' >> $path.0
+    # TODO handle testing properly for days with exceptional input offset
     ./bin2tap/bin2tap 0xa000 "AoC22d${'day'}i" $path.0
     mv $path.0.tap $bd/test_input_$f.tap
     rm $path.0

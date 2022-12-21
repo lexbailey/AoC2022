@@ -146,3 +146,67 @@ gte16le:
     ret z
     jp eq16le ; tail call
 
+
+; Optimised multiply by 10
+; (ix) = (ix) * 10
+; decomposes 10 into sum of powers of two
+; x * 10 === (x * 2) + (x * 8) === dbl(x) + dbl(dbl(dbl(x)))
+; three doubles plus an add
+multen16le:
+    push bc
+    push de
+    push hl
+    push iy
+    ; (ix) = (ix) * 2
+    call dbl16le
+    ; (tmp1) = (ix)
+    ld bc, 2
+    push ix
+    pop hl
+    ld de, multen16le_tmp1
+    ldir
+    ; (ix) = (ix) * 2
+    call dbl16le
+    ; (ix) = (ix) * 2
+    call dbl16le
+    ; (ix) = (ix) + (tmp1)
+    ld iy, multen16le_tmp1
+    call add16le
+    pop iy
+    pop hl
+    pop de
+    pop bc
+    ret
+multen16le_tmp1:
+    db 0,0
+
+parse16le: ; takes a buffer (hl) and consumes digits until a non-digit is reached, leaves hl at the end of the parsed number, stores number at (ix)
+    ; this function works by multiplying by 10 and adding the next char as unit value until it finds an unrecognised char
+    push af
+    push iy
+    ; (ix) = 0
+    ld (ix), 0
+    ld (ix+1), 0
+    ld iy, parse16le_tmp1
+parse16le_loop:
+    ; get next char
+    ld a, (hl)
+    ; ascii zero to number 0
+    sub 48
+    ; is number less than 10?
+    cp 10
+    jp nc, parse16le_done ; if greater than 10 then we're done
+    ; multiply (ix) by 10
+    call multen16le
+    ; add the next digit
+    ld (parse16le_tmp1), a
+    call add16le
+    ; loop
+    inc hl
+    jp parse16le_loop
+parse16le_done:
+    pop iy
+    pop af
+    ret
+parse16le_tmp1:
+    db 0,0
