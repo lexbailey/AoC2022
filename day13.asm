@@ -20,6 +20,13 @@ ia:
 ib:
     dw 0xa000
 
+p2_res:
+    db 1,0,0,0
+tmp:
+    db 0,0,0,0
+tmp2:
+    db 0,0,0,0
+
 s:
     db 0,0,0,0
 ia2:
@@ -34,6 +41,9 @@ end_index:
     db 0,0
 next_index:
     db 0,0
+
+debug_y:
+    db 0,0,0,0
 
 ; to check if is digit
 ;    sub 48
@@ -221,9 +231,11 @@ compare:
     push af
     push bc
     push hl
+    push de
     ; at least one is still a list
     ld b, 1 ; will track if both are lists
     ld hl, (ia)
+    ld de, hl
     ld a, (hl)
     cp '['
     jp z, compare_a_is_list
@@ -256,9 +268,9 @@ compare_b_check_done:
     cp 1
     jp z, compare_defer_lists
     ; otherwise pretend one item is a list
-    ld hl, (ia)
-    dec hl
-    ld a, (hl)
+    ;ld hl, (ia)
+    ;dec hl
+    ld a, (de)
     cp '['
     jp nz, compare_asym_a_not_list
 
@@ -293,6 +305,7 @@ compare_copy_b_loop2:
     ld hl, tmp_str_b
     ld bc, 300 ; TODO this can be smaller
     ldir
+    pop de
     pop hl
     pop bc
     pop af
@@ -331,16 +344,13 @@ compare_copy_a_loop2:
     ld hl, tmp_str_a
     ld bc, 300 ; TODO this can be smaller
     ldir
+    pop de
     pop hl
     pop bc
     pop af
     jp compare ; tail call
-
-
-
-
-
 compare_defer_lists:
+    pop de
     pop hl
     pop bc
     pop af
@@ -380,7 +390,6 @@ scan_b_start_loop:
     call compare
     cp 1
     jp nz, p1_not1
-break:
     ld ix, s
     ld iy, i_
     call add32le
@@ -400,6 +409,8 @@ scan_a_start_loop:
     ld (ib2), hl
     jp part1_loop
 p1_complete:
+    ;ld (ia2), hl
+    ;ld (end_index), hl
     ld de, n_indexes
     ld hl, i_
     ld bc, 4
@@ -407,6 +418,124 @@ p1_complete:
     ld ix, n_indexes
     pop hl
     jp dbl32le ; tail call
+
+; align these so that the high bytes of their addresses are equal, saves a comparison in the search loop
+    ALIGN 4
+additional_1:
+    db "[[2]]", 10
+additional_2:
+    db "[[6]]", 10
+
+additional_prefix: equ (additional_1 >> 8) & 0xff
+additional_s1: equ additional_1 & 0xff
+additional_s2: equ additional_2 & 0xff
+
+part2:
+    ld hl, (next_index)
+    ld de, additional_1
+    ld (hl), de
+    inc hl
+    inc hl
+    ld de, additional_2
+    ld (hl), de
+    ld hl, (n_indexes)
+    inc hl
+    inc hl
+    ld (n_indexes), hl
+
+
+    ld bc, (n_indexes)
+p2_xloop:
+    dec bc
+    push bc
+    ld bc, (n_indexes)
+    dec bc
+p2_yloop:
+    dec bc
+
+    ld hl, indexes
+    add hl, bc
+    add hl, bc
+    ld de, (hl)
+    ld (ia), de
+    ld (ia2), de
+    inc hl
+    inc hl
+    ld de, (hl)
+    ld (ib), de
+    ld (ib2), de
+    call compare
+    cp 255
+    jp nz, p2_noswap
+debug_stuff:
+    push hl
+    ld hl, debug_y
+    ld (hl), bc
+    pop hl
+end_debug_stuff:
+    push bc
+    ld de, (hl)
+    dec hl
+    dec hl
+    ld bc, (hl)
+    ld (hl), de
+    inc hl
+    inc hl
+    ld (hl), bc
+    pop bc
+
+p2_noswap:
+    ld a, c
+    cp 0
+    jp nz, p2_yloop
+    ld a, b
+    cp 0
+    jp nz, p2_yloop
+
+    pop bc
+    ld a, c
+    cp 0
+    jp nz, p2_xloop
+    ld a, b
+    cp 0
+    jp nz, p2_xloop
+    ld hl, indexes
+p2_search_loop:
+    ld e, (hl)
+    inc hl
+    ld d, (hl)
+    inc hl
+    ld a, 0
+    cp d
+    jp nz, p2_search_noskip
+    cp e
+    jp z, p2_search_done
+p2_search_noskip:
+    ld a, additional_prefix
+    cp d
+    jp nz, p2_search_loop
+    ld a, additional_s1
+    cp e
+    jp z, p2_special
+    ld a, additional_s2
+    cp e
+    jp z, p2_special
+    jp p2_search_loop
+p2_special:
+    ld ix, tmp
+    ld (ix), l
+    ld (ix+1), h
+    ld iy, tmp2
+    ld (iy), indexes & 0xff
+    ld (iy+1), (indexes >> 8) & 0xff
+    call sub32le
+    call sra32le
+    ld iy, tmp
+    ld ix, p2_res
+    call mul32le
+    jp p2_search_loop
+p2_search_done:
+    ret
 
 start:
     ld (iy_cache),iy
@@ -419,6 +548,11 @@ output:
     ld iy,(iy_cache)
     ld ix, s
     call p1_result   
+    call intro_p2
+    call part2
+    ld iy,(iy_cache)
+    ld ix, p2_res
+    call p2_result
 
     call large_delay
 end:
